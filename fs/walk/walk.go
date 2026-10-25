@@ -522,21 +522,22 @@ func walkRDirTree(ctx context.Context, f fs.Fs, startPath string, includeAll boo
 						}
 					}
 				}
-			case fs.Directory:
-				inc, err := includeDirectory(x.Remote())
-				if err != nil {
-					return err
-				}
-				if includeAll || inc {
-					if maxLevel < 0 || slashes <= maxLevel-1 {
-						if slashes == maxLevel-1 {
-							// Just add the object if at maxLevel
-							dirs.Add(x)
-						} else {
-							dirs.AddDir(x)
+				case fs.Directory:
+					fs.Debugf(x.Remote(), "walk: encountered directory")
+					inc, err := includeDirectory(x.Remote())
+					if err != nil {
+						return err
+					}
+					if includeAll || inc {
+						if maxLevel < 0 || slashes <= maxLevel-1 {
+							if slashes == maxLevel-1 {
+								// Just add the object if at maxLevel
+								dirs.Add(x)
+							} else {
+								dirs.AddDir(x)
+							}
 						}
 					}
-				}
 			default:
 				return fmt.Errorf("unknown object type %T", entry)
 			}
@@ -563,6 +564,7 @@ func walkNDirTree(ctx context.Context, f fs.Fs, path string, includeAll bool, ma
 	dirs := make(dirtree.DirTree)
 	fn := func(dirPath string, entries fs.DirEntries, err error) error {
 		if err == nil {
+			fs.Debugf(dirPath, "walk: listed directory with %d entries", len(entries))
 			dirs[dirPath] = entries
 		}
 		return err
